@@ -17,6 +17,13 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     private JTextField mins = new JTextField(2);
     private JTextField secs = new JTextField(2);
     private JTextField dist = new JTextField(4);
+    //new textfields
+    private JTextField rep = new JTextField(2);
+    private JTextField rec = new JTextField(2);
+    private JTextField ter = new JTextField(10);
+    private JTextField tem = new JTextField(10);
+    private JTextField loc = new JTextField(10);
+    
     private JLabel labn = new JLabel(" Name:");
     private JLabel labd = new JLabel(" Day:");
     private JLabel labm = new JLabel(" Month:");
@@ -24,13 +31,22 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     private JLabel labh = new JLabel(" Hours:");
     private JLabel labmm = new JLabel(" Mins:");
     private JLabel labs = new JLabel(" Secs:");
-    private JLabel labdist = new JLabel(" Distance (km):");
-    private JButton addR = new JButton("Add");
+    private JLabel labdist = new JLabel(" Distance (km or m for sprint):");
+    private JButton addR = new JButton("Add Entry");
     private JButton lookUpByDate = new JButton("Look Up");
+    private JButton findAllByDate = new JButton("Find All");
+    private JButton remove = new JButton("Remove");
+    
+    //new labels:
+    private JLabel labrep = new JLabel(" Repitions (sprint ONLY):");
+    private JLabel labrec = new JLabel(" Recovery (sprint ONLY):");
+    private JLabel labter = new JLabel(" Terrain (cycle ONLY):");
+    private JLabel labtem = new JLabel(" Tempo (cycle ONLY):");
+    private JLabel labloc = new JLabel(" Location (swim ONLY):");
 
     private TrainingRecord myAthletes = new TrainingRecord();
 
-    private JTextArea outputArea = new JTextArea(5, 50);
+    private JTextArea outputArea = new JTextArea(9, 50);
 
     public static void main(String[] args) {
         TrainingRecordGUI applic = new TrainingRecordGUI();
@@ -64,13 +80,34 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         add(labdist);
         add(dist);
         dist.setEditable(true);
+        // adding new text fields
+        add(labrep);
+        add(rep);
+        rep.setEditable(true);
+        add(labrec);
+        add(rec);
+        rec.setEditable(true);
+        add(labter);
+        add(ter);
+        ter.setEditable(true);
+        add(labtem);
+        add(tem);
+        tem.setEditable(true);
+        add(labloc);
+        add(loc);
+        loc.setEditable(true);
+        
         add(addR);
         addR.addActionListener(this);
         add(lookUpByDate);
         lookUpByDate.addActionListener(this);
+        add(findAllByDate);
+        remove.addActionListener(this);
+        add(remove);
+        findAllByDate.addActionListener(this);
         add(outputArea);
         outputArea.setEditable(false);
-        setSize(720, 200);
+        setSize(900, 300);
         setVisible(true);
         blankDisplay();
 
@@ -83,30 +120,85 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent event) {
         String message = "";
         if (event.getSource() == addR) {
-            message = addEntry("generic");
+        	if (!rep.getText().isEmpty() && !rec.getText().isEmpty()) {message = addEntry("Sprint");}
+        	else if (!ter.getText().isEmpty() && !tem.getText().isEmpty()) {message = addEntry("Cycle");}
+        	else if (!loc.getText().isEmpty()) {message = addEntry("Swim");}
+        	else {message = "Invalid entry. Recheck details.";}
         }
         if (event.getSource() == lookUpByDate) {
             message = lookupEntry();
+        }
+        if (event.getSource() == findAllByDate) {
+        	message = lookupAll();
+        }
+        if (event.getSource()== remove) {
+        	message = removeRec();
         }
         outputArea.setText(message);
         blankDisplay();
     } // actionPerformed
 
+
+    
+    
+    //add sprint
     public String addEntry(String what) {
-        String message = "Record added\n";
-        System.out.println("Adding "+what+" entry to the records");
-        String n = name.getText();
-        int m = Integer.parseInt(month.getText());
-        int d = Integer.parseInt(day.getText());
-        int y = Integer.parseInt(year.getText());
-        float km = java.lang.Float.parseFloat(dist.getText());
-        int h = Integer.parseInt(hours.getText());
-        int mm = Integer.parseInt(mins.getText());
-        int s = Integer.parseInt(secs.getText());
-        Entry e = new Entry(n, d, m, y, h, mm, s, km);
-        myAthletes.addEntry(e);
+    	String message;
+        try {
+        	message = "" + what+ " Record added\n";
+            System.out.println("Adding "+what+" entry to the records");
+        	String n = name.getText();
+        	if (n.isEmpty()) { //If name is blank, method is terminated 
+        		message = "No name entered.";
+        		System.out.println("Entry failed. No name entered.");
+        		return message;};
+            int m = Integer.parseInt(month.getText());
+            int d = Integer.parseInt(day.getText());
+            int y = Integer.parseInt(year.getText());
+            float km = java.lang.Float.parseFloat(dist.getText());
+            int h = Integer.parseInt(hours.getText());
+            int mm = Integer.parseInt(mins.getText());
+            int s = Integer.parseInt(secs.getText());
+            int r=0,re=0;
+            if(!rep.getText().isBlank()) { r = Integer.parseInt(rep.getText());}
+            if(!rec.getText().isBlank()) { re = Integer.parseInt(rec.getText());}
+            String terr="",temp="",l="";
+            if (!ter.getText().isBlank()) {terr = ter.getText();}
+            if (!tem.getText().isBlank()) {temp = tem.getText();}
+            if (!loc.getText().isBlank()) {l = loc.getText();}
+            // check for duplicate record
+            if (myAthletes.checkDuplicate(n,d,m,y)) {
+            	message = "Duplicate record found. Entry failed.";
+            	System.out.println("Could not add " +what+ " record. Duplicate found.");
+            	return message;};
+            Entry e;
+            if (!rep.getText().isEmpty()) { e = new SprintEntry(n, d, m, y, h, mm, s, km, r, re);}
+            else if (!ter.getText().isEmpty()) { e = new CycleEntry(n, d, m, y, h, mm, s, km, terr, temp);}
+        	else if (!loc.getText().isEmpty()) { e = new SwimEntry(n, d, m, y, h, mm, s, km, l);}
+        	else {e = new Entry(n, d, m, y, h, mm, s, km);};
+            myAthletes.addEntry(e);
+        }
+        catch (NumberFormatException numE){ //handle exception
+        	message = "Invalid date format added. Only intergers accepted.";
+        	System.out.println("Adding entry FAILED: " + numE);
+        }
+        
         return message;
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        
+    
     
     public String lookupEntry() {
         int m = Integer.parseInt(month.getText());
@@ -115,6 +207,25 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         outputArea.setText("looking up record ...");
         String message = myAthletes.lookupEntry(d, m, y);
         return message;
+    }
+    
+    public String lookupAll() {
+        int m = Integer.parseInt(month.getText());
+        int d = Integer.parseInt(day.getText());
+        int y = Integer.parseInt(year.getText());
+        outputArea.setText("looking up record ...");
+        String message = myAthletes.lookupAll(d, m, y);
+        return message;
+    }
+    
+    public String removeRec() {
+    	String n = name.getText();
+    	int m = Integer.parseInt(month.getText());
+        int d = Integer.parseInt(day.getText());
+        int y = Integer.parseInt(year.getText());
+        outputArea.setText("looking up record ...");
+    	String message = myAthletes.removeRec(n,d,m,y);
+    	return message;
     }
 
     public void blankDisplay() {
@@ -126,8 +237,13 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         mins.setText("");
         secs.setText("");
         dist.setText("");
-
+        rep.setText("");
+        rec.setText("");
+        ter.setText("");
+        tem.setText("");
+        loc.setText("");
     }// blankDisplay
+    
     // Fills the input fields on the display for testing purposes only
     public void fillDisplay(Entry ent) {
         name.setText(ent.getName());
@@ -139,6 +255,8 @@ public class TrainingRecordGUI extends JFrame implements ActionListener {
         secs.setText(String.valueOf(ent.getSec()));
         dist.setText(String.valueOf(ent.getDistance()));
     }
+    
+    
 
 } // TrainingRecordGUI
 
