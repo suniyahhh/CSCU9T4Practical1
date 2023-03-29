@@ -16,7 +16,9 @@ public class TrainingRecord {
     
     // add a record to the list
    public void addEntry(Entry e){
-       tr.add(e);    
+	   if (!checkDuplicate(e.getName(),e.getDay(),e.getMonth(),e.getYear())) {
+		   tr.add(e);};
+       //tr.add(e);    
    } // addClass
    
    // look up the entry of a given day and month
@@ -41,7 +43,7 @@ public class TrainingRecord {
           if (current.getDay()==d && current.getMonth()==m && current.getYear()==y) 
              result += current.getEntry();
             }
-       if (result.equals("")) {result = "No entries found";};
+       if (result.equals("")) {result = "Sorry couldn't find anything for this date";};
        return result;
    } // lookupAll
    
