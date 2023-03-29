@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
- * @author saemundur
+ * @author suniy
  */
 public class EntryTest {
     

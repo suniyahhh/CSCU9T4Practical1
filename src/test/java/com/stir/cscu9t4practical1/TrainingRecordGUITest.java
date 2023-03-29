@@ -92,8 +92,12 @@ public class TrainingRecordGUITest {
         instance.fillDisplay(entry);
         String message = instance.addEntry("generic");
         System.out.println(message);
-        assertEquals(message,"Record added\n");
+        assertEquals(message,"generic Record added\n");
     }
+    
+    
+    
+    
     
     /**
      * Test to see if all display requirements have been met
@@ -103,7 +107,7 @@ public class TrainingRecordGUITest {
         System.out.println("Check if you have added the buttons"); 
         TrainingRecordGUI instance = new TrainingRecordGUI();
         Class<?> instanceClass = instance.getClass();
-        String[] expectedFields = {"findAllByDate","lookUpByDate"}; // add RemoveEntry when it is ready
+        String[] expectedFields = {"findAllByDate","lookUpByDate","remove"}; // add RemoveEntry when it is ready
         Field fields[] = instanceClass.getDeclaredFields();
         int found = 0;
         for (Field field : fields) {
